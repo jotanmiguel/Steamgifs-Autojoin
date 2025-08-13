@@ -1,6 +1,7 @@
 # SteamGifts Autojoin Bot
 
 Um bot para automatizar a entrada em giveaways do [SteamGifts](https://www.steamgifts.com).
+De momento só funciona para firefox. Se necessário posso criar versões para outros browsers (Chromium, etc...)
 
 ## Funcionalidades
 
