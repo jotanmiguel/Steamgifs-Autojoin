@@ -1,0 +1,39 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environments
+venv/
+.env
+.env.*
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# VSCode
+.vscode/
+
+# Data / cookies / saves (não versionar cookies e dados locais)
+cookies/
+data/giveaways.json
+*.pkl
+
+# Pytest / coverage
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+*.egg
+
+# IDEs
+.idea/
+*.iml
