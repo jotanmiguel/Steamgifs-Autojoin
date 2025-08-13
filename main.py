@@ -1,5 +1,4 @@
 import os, src.session_manager as sm, argparse
-
 import requests
 from src import save_cookies, get_giveaways, join_giveaways
 from src.config import COOKIES_PATH
