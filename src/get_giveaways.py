@@ -2,6 +2,7 @@ from bs4 import BeautifulSoup
 import json, requests, time, src.session_manager as sm
 from utils.logger import log
 from src.config import BASE_URL, GIVEAWAYS_FILE
+from src.models import Giveaway
 
 PARAMS = {"format": "json"}
 
@@ -91,13 +92,14 @@ def fetch_giveaway(giveaway_id: str):
     return None  # se não encontrar
 
 def fetch_giveaways(max_pages=5):
-    """_summary_
+    """
+    Fetches giveaways from multiple pages and stores them in JSON.
 
     Args:
-        max_pages (int, optional): _description_. Defaults to 5.
+        max_pages (int, optional): Number of pages to fetch. Defaults to 5.
 
     Returns:
-        _type_: _description_
+        list[Giveaway]: List of Giveaway objects.
     """
     
     page = 1
@@ -106,23 +108,24 @@ def fetch_giveaways(max_pages=5):
         giveaways = fetch_giveaway_page(page, max_pages)
         if not giveaways:
             log.info(f"❗ No more giveaways found on page {page}. Stopping search.")
-            log.info("")
             break
         
         total.extend(giveaways)
         page += 1
         time.sleep(1)
+
     log.info(f"✅ Total giveaways fetched: {len(total)}")
-    
-    log.info("")
-    
-    with open("data/giveaways.json", "w", encoding="utf-8") as f:
-        log.info(f"💾 Saving giveaways to {GIVEAWAYS_FILE}")
-        
-        log.info("")
-        
-        json.dump(total, f, ensure_ascii=False, indent=4)
-    return total
+
+    # Converter JSON → Objetos Giveaway
+    giveaway_objects = [Giveaway.from_dict(g) for g in total]
+
+    # Guardar no ficheiro mas usando dicionários
+    with open(GIVEAWAYS_FILE, "w", encoding="utf-8") as f:
+        json.dump([g.to_dict() for g in giveaway_objects], f, ensure_ascii=False, indent=4)
+        log.info(f"💾 Saved giveaways to {GIVEAWAYS_FILE}")
+
+    return giveaway_objects
+
 
 if __name__ == "__main__":
     all_giveaways = fetch_giveaways()
