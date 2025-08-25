@@ -1,31 +1,59 @@
-import requests, os
+# session_manager.py
+import requests, json, os
 from src.config import COOKIES_PATH, BASE_URL
-from src.load_cookies import load_cookies
 from utils.logger import log
 
+# Variáveis globais da sessão
 cookies = None
 xsrf_token = None
-local = os.getenv("LOCAL", "False") == "True"
 
-def init_session(local=False):
+def init_session(local=False, env=None):
     """
-    Initializes the session by loading cookies and fetching the XSRF token.
+    Inicializa a sessão carregando cookies e buscando XSRF token.
+    
+    Args:
+        local (bool): Se True, lê cookies do ficheiro local.
+        env (dict): Objeto env do Cloudflare Worker (para acessar secrets).
     """
+    log.info("Initializing session...")
     global cookies, xsrf_token
-    cookies = load_cookies(local, path_pickle=COOKIES_PATH)
+    cookies = get_cookies(local=local, env=env)
     xsrf_token = get_xsrf_token(cookies)
     log.info("Session initialized with cookies and XSRF token.")
 
+def get_cookies(local=False, env=None, path_json=COOKIES_PATH):
+    """
+    Obtém cookies como dict.
+    
+    - local=True: lê ficheiro local JSON
+    - local=False: lê secret do Cloudflare a partir de 'env'
+    """
+    if local:
+        if not os.path.exists(path_json):
+            log.error(f"Cookie file not found: {path_json}")
+            raise FileNotFoundError(f"Cookie file not found: {path_json}")
+        log.info(f"Loading cookies from local JSON: {path_json}")
+        with open(path_json, "r", encoding="utf-8") as f:
+            return json.load(f)
+
+    if env:
+        log.info("Loading cookies from secret...")
+        cookies_json = env.get("COOKIES")
+        if cookies_json:
+            log.info("Loading cookies from local file...")
+            return json.loads(cookies_json)
+
+    raise RuntimeError("Cookies not found. Use local=True or ensure COOKIES secret is defined in env.")
 
 def get_xsrf_token(cookies):
     """
-    Fetches the XSRF token from the main page.
+    Busca o XSRF token da página principal.
 
     Args:
-        cookies (dict): The cookies to use for the request.
+        cookies (dict): Cookies para a request.
 
     Returns:
-        str: The XSRF token.
+        str: XSRF token
     """
     resp = requests.get(BASE_URL, cookies=cookies)
     resp.raise_for_status()
