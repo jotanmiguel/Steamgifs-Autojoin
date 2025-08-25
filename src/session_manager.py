@@ -29,20 +29,12 @@ def get_cookies(local=False, env=None, path_json=COOKIES_PATH):
     - local=False: lê secret do Cloudflare a partir de 'env'
     """
     if local:
-        if not os.path.exists(path_json):
-            log.error(f"Cookie file not found: {path_json}")
-            raise FileNotFoundError(f"Cookie file not found: {path_json}")
-        log.info(f"Loading cookies from local JSON: {path_json}")
         with open(path_json, "r", encoding="utf-8") as f:
             return json.load(f)
-
-    if env:
-        cookies_json = env.get("COOKIES")
-        if cookies_json:
-            log.info("Loading cookies from Cloudflare secret...")
-            return json.loads(cookies_json)
-
+    if env and "COOKIES" in env:
+        return json.loads(env["COOKIES"])
     raise RuntimeError("Cookies not found. Use local=True or ensure COOKIES secret is defined in env.")
+
 
 def get_xsrf_token(cookies):
     """
