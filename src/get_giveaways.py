@@ -1,3 +1,4 @@
+import os
 from bs4 import BeautifulSoup
 import json, requests, time, src.session_manager as sm
 from utils.logger import log
@@ -76,7 +77,12 @@ def fetch_giveaway_page(page=1, max_pages=5):
     return giveaways
 
 def fetch_giveaway(giveaway_id: str):
-    with open("data/giveaways.json", "r", encoding="utf-8") as f:
+    
+    if not os.path.exists(GIVEAWAYS_FILE):
+        log.warning(f"❗ {GIVEAWAYS_FILE} não encontrado. Rodar fetch_giveaways() primeiro.")
+        return fetch_giveaways()
+    
+    with open(GIVEAWAYS_FILE, "r", encoding="utf-8") as f:
         log.debug(f"Loading giveaways from {GIVEAWAYS_FILE}")
         giveaways = json.load(f)
     
@@ -101,6 +107,8 @@ def fetch_giveaways(max_pages=5):
     Returns:
         list[Giveaway]: List of Giveaway objects.
     """
+    
+    os.makedirs(os.path.dirname(GIVEAWAYS_FILE), exist_ok=True)
     
     page = 1
     total = []
