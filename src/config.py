@@ -10,3 +10,4 @@ GECKODRIVER_PATH = os.path.join(BIN_DIR, "geckodriver.exe")
 BASE_URL = "https://www.steamgifts.com"
 FIREFOX_PATH = r"C:\Program Files\Mozilla Firefox\firefox.exe"  # <-- ajustar se necessário
 GIVEAWAYS_FILE = os.path.join(BASE_DIR, "data", "giveaways.json")
+TESTE = "asdas"
