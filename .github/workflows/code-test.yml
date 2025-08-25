@@ -35,5 +35,4 @@ jobs:
           # Se tiveres cookies em GitHub Secrets, podes definir aqui
           STEAMGIFTS_COOKIES: ${{ secrets.STEAMGIFTS_COOKIES }}
         run: |
-          cd src
           python main.py --max-pages 5 --verbose
