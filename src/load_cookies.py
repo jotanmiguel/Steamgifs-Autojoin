@@ -3,7 +3,7 @@ import json
 import os
 from utils.logger import log
 
-def load_cookies(local=True, path_pickle="cookies/steamgifts.pkl", path_json="cookies/steamgifts.json"):
+def load_cookies(local=False, path_pickle="cookies/steamgifts.pkl", path_json="cookies/steamgifts.json"):
     """
     Retorna cookies em dict.
     - local=True: lê arquivo local (pickle ou JSON)
