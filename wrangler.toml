@@ -1,4 +1,5 @@
 name = "steamgifts-autojoin"
+main = "worker.py"
 
 compatibility_flags = ["python_workers"]
 

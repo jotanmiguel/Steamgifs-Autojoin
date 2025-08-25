@@ -1,8 +1,7 @@
-from workers import handler
-from main import main  # Certifica-te de que a função main() está corretamente importada
+from workers import WorkerEntrypoint, Response
+import main
 
-@handler
-async def on_scheduled(controller, env, ctx):
-    print("Cron Trigger acionado")
-    main()  # Executa o teu código principal
-    print("Execução do main.py concluída")
+class Default(WorkerEntrypoint):
+    async def fetch(self,env, request):
+        main.main(env=env)
+        return Response("✅ Cron executed", status=200)

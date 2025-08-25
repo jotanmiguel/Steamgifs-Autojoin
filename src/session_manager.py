@@ -37,10 +37,9 @@ def get_cookies(local=False, env=None, path_json=COOKIES_PATH):
             return json.load(f)
 
     if env:
-        log.info("Loading cookies from secret...")
         cookies_json = env.get("COOKIES")
         if cookies_json:
-            log.info("Loading cookies from local file...")
+            log.info("Loading cookies from Cloudflare secret...")
             return json.loads(cookies_json)
 
     raise RuntimeError("Cookies not found. Use local=True or ensure COOKIES secret is defined in env.")
