@@ -1,6 +1,7 @@
 import pickle
 import json
 import os
+import env
 from utils.logger import log
 
 def load_cookies(local=False, path_pickle="cookies/steamgifts.pkl", path_json="cookies/steamgifts.json"):
@@ -11,7 +12,7 @@ def load_cookies(local=False, path_pickle="cookies/steamgifts.pkl", path_json="c
     """
     # Cloudflare / CI / produção
     if not local:
-        cookies_json = os.environ.get("COOKIES")
+        cookies_json = env.get("COOKIES")
         if cookies_json:
             log.info("Using Env cookies...")
             return json.loads(cookies_json)

@@ -4,3 +4,4 @@ selenium>=4.15.0
 colorama>=0.4.6
 flask
 workers
+env
