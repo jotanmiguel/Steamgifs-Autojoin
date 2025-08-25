@@ -31,7 +31,10 @@ def main():
         save_cookies.save_cookies_local()
 
     try:
-        sm.init_session(args.local)
+        if args.local:
+            sm.start_session(local=True)
+        else:
+            sm.start_session(local=False)
     except requests.exceptions.HTTPError as e:
         if e.response.status_code == 429:
             log.error("⚠️ Too many requests. Please wait a bit before running again.")
