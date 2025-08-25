@@ -5,7 +5,7 @@ from src import save_cookies, get_giveaways, join_giveaways
 from src.config import COOKIES_PATH
 from utils.logger import setup_logger, log
 
-def main(env=None):
+def main():
     parser = argparse.ArgumentParser(description="SteamGifts Autojoin Bot")
     parser.add_argument("--max-pages", type=int, default=5, help="Número máximo de páginas a buscar giveaways")
     parser.add_argument("--verbose", action="store_true", help="Ativar logs detalhados")
@@ -34,7 +34,7 @@ def main(env=None):
         if args.local:
             sm.init_session(local=True)
         else:
-            sm.init_session(local=False, env=env)
+            sm.init_session(local=False)
     except requests.exceptions.HTTPError as e:
         if e.response.status_code == 429:
             log.error("⚠️ Too many requests. Please wait a bit before running again.")
