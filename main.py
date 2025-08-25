@@ -11,7 +11,7 @@ def main():
     parser.add_argument("--local", action="store_true", help="Usar cookies locais ao invés de Cloudflare")
     args = parser.parse_args()
     
-    os.environ["LOCAL"] = True if args.local else False
+    os.environ["LOCAL"] = "True" if args.local else "False"
 
     log_level = "DEBUG" if args.verbose else "INFO"
     if log_level == "DEBUG":
