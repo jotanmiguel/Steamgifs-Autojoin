@@ -32,9 +32,9 @@ def main():
 
     try:
         if args.local:
-            sm.start_session(local=True)
+            sm.init_session(local=True)
         else:
-            sm.start_session(local=False)
+            sm.init_session(local=False)
     except requests.exceptions.HTTPError as e:
         if e.response.status_code == 429:
             log.error("⚠️ Too many requests. Please wait a bit before running again.")
