@@ -1,4 +1,5 @@
 import os, src.session_manager as sm, argparse
+from threading import local
 import requests
 from src import save_cookies, get_giveaways, join_giveaways
 from src.config import COOKIES_PATH
@@ -10,8 +11,6 @@ def main():
     parser.add_argument("--verbose", action="store_true", help="Ativar logs detalhados")
     parser.add_argument("--local", action="store_true", help="Usar cookies locais ao invés de Cloudflare")
     args = parser.parse_args()
-    
-    os.environ["LOCAL"] = "True" if args.local else "False"
 
     log_level = "DEBUG" if args.verbose else "INFO"
     if log_level == "DEBUG":
@@ -32,7 +31,7 @@ def main():
         save_cookies.save_cookies_local()
 
     try:
-        sm.init_session()
+        sm.init_session(args.local)
     except requests.exceptions.HTTPError as e:
         if e.response.status_code == 429:
             log.error("⚠️ Too many requests. Please wait a bit before running again.")

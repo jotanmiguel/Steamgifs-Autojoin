@@ -7,7 +7,7 @@ cookies = None
 xsrf_token = None
 local = os.getenv("LOCAL", "False") == "True"
 
-def init_session():
+def init_session(local=False):
     """
     Initializes the session by loading cookies and fetching the XSRF token.
     """
