@@ -8,7 +8,10 @@ def main():
     parser = argparse.ArgumentParser(description="SteamGifts Autojoin Bot")
     parser.add_argument("--max-pages", type=int, default=5, help="Número máximo de páginas a buscar giveaways")
     parser.add_argument("--verbose", action="store_true", help="Ativar logs detalhados")
+    parser.add_argument("--local", action="store_true", help="Usar cookies locais ao invés de Cloudflare")
     args = parser.parse_args()
+    
+    os.environ["LOCAL"] = True if args.local else False
 
     log_level = "DEBUG" if args.verbose else "INFO"
     if log_level == "DEBUG":
