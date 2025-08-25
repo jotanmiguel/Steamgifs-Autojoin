@@ -1,0 +1,38 @@
+# .github/workflows/ci.yml
+name: SteamGifts Autojoin CI
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
+
+jobs:
+  build-and-run:
+    runs-on: ubuntu-latest
+    steps:
+      # 1️⃣ Puxar o repositório
+      - uses: actions/checkout@v3
+
+      # 2️⃣ Configurar Python
+      - name: Set up Python 3.12.2
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.12.2
+
+      # 3️⃣ Instalar dependências
+      - name: Install dependencies
+        run: |
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      # 6️⃣ Executar o bot
+      - name: Run SteamGifts Autojoin Bot
+        env:
+          # Se tiveres cookies em GitHub Secrets, podes definir aqui
+          STEAMGIFTS_COOKIES: ${{ secrets.STEAMGIFTS_COOKIES }}
+        run: |
+          python main.py --max-pages 5 --verbose
