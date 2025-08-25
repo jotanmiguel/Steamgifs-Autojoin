@@ -11,6 +11,7 @@ def load_cookies(local=False, path_pickle="cookies/steamgifts.pkl", path_json="c
     """
     # Cloudflare
     if not local:
+        log.info("Using Env cookies...")
         cookies_json = os.environ.get("COOKIES")
         if cookies_json:
             log.info("Loading cookies from Cloudflare secret...")
