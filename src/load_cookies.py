@@ -7,19 +7,21 @@ def load_cookies(local=False, path_pickle="cookies/steamgifts.pkl", path_json="c
     """
     Retorna cookies em dict.
     - local=True: lê arquivo local (pickle ou JSON)
-    - local=False: lê secret do Cloudflare
+    - local=False: lê secret do Cloudflare (env var)
     """
-    # Cloudflare
+    # Cloudflare / CI / produção
     if not local:
-        log.info("Using Env cookies...")
         cookies_json = os.environ.get("COOKIES")
         if cookies_json:
-            log.info("Loading cookies from Cloudflare secret...")
+            log.info("Using Env cookies...")
             return json.loads(cookies_json)
-        # fallback para JSON local
-        with open(path_json, "r") as f:
-            log.info(f"Loading cookies from local JSON: {path_json}")
-            return json.load(f)
+        else:
+            # fallback apenas local, se existir ficheiro JSON
+            if os.path.exists(path_json):
+                log.info(f"Env COOKIES not found. Using local JSON: {path_json}")
+                with open(path_json, "r", encoding="utf-8") as f:
+                    return json.load(f)
+            raise ValueError("COOKIES env variable not found and local JSON does not exist.")
 
     # Local
     if path_pickle.endswith(".pkl") and os.path.exists(path_pickle):
@@ -30,7 +32,7 @@ def load_cookies(local=False, path_pickle="cookies/steamgifts.pkl", path_json="c
 
     elif path_pickle.endswith(".json") and os.path.exists(path_pickle):
         log.info(f"Loading cookies from JSON: {path_pickle}")
-        with open(path_pickle, "r") as f:
+        with open(path_pickle, "r", encoding="utf-8") as f:
             return json.load(f)
 
     else:

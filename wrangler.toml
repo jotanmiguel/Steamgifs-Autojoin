@@ -1,0 +1,6 @@
+name = "steamgifts-autojoin"
+
+compatibility_flags = ["python_workers"]
+
+[triggers]
+crons = ["0 */2 * * *"]
