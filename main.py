@@ -1,6 +1,7 @@
 import os, src.session_manager as sm, argparse
 from threading import local
 import requests
+from workers import handler
 from src import save_cookies, get_giveaways, join_giveaways
 from src.config import COOKIES_PATH
 from utils.logger import setup_logger, log
@@ -48,4 +49,8 @@ def main():
     join_giveaways.process_and_join_all(giveaways)
 
 if __name__ == "__main__":
+    main()
+    
+@handler
+async def on_scheduled(controller, env, ctx):
     main()
