@@ -1,4 +1,7 @@
+from datetime import timedelta
+from time import time
 import os
+from arrow import get, now
 from bs4 import BeautifulSoup
 import json, requests, time, src.session_manager as sm
 from utils.logger import log
@@ -72,6 +75,22 @@ def fetch_giveaway_page(page=1, max_pages=5):
             g["code"] = ""
             log.warning(f"❗ Giveaway ID {g.get('id')} has no link.")
             
+
+        end_timestamp = g.get("end_timestamp", 0)
+        remaining_seconds = int(end_timestamp - time.time())
+
+        if remaining_seconds > 0:
+            days = remaining_seconds // 86400
+            hours = (remaining_seconds % 86400) // 3600
+            minutes = (remaining_seconds % 3600) // 60
+            seconds = remaining_seconds % 60
+
+            log.info(f"Remaining time: {days}d {hours:02}h:{minutes:02}m:{seconds:02}s")
+            
+        g["remaining_time"] = remaining_seconds
+        g["remaining_time_str"] = f"{days}d {hours:02}h:{minutes:02}m:{seconds:02}s"
+        
+            
     log.info(f"All giveaways from page {page} fetched successfully.")
     log.info("")
     return giveaways
@@ -134,6 +153,53 @@ def fetch_giveaways(max_pages=5):
 
     return giveaway_objects
 
+def sort_giveaways(giveaways, by=("remaining_time", "points"), reverse=False, min_points=0, max_points=None, timeframe=3600):
+    """
+    Sorts giveaways based on specified criteria.
+
+    Args:
+        giveaways (Giveaways): List of Giveaway objects.
+        by (tuple, optional): Criteria of the sort. Defaults to ("remaining_time", "points").
+        reverse (bool, optional): If True, sort in descending order. Defaults to False.
+        timeframe (int, optional): Timeframe in seconds to filter giveaways ending within this period. Defaults to 3600. Recomended value = same as chron function. None to disable.
+
+    Returns:
+        List: List of sorted Giveaway objects within the specified timeframe.
+    """
+    
+    log.info(f"Sorting giveaways by {by}, reverse={reverse}, "
+             f"min_points={min_points}, max_points={max_points}, timeframe={timeframe}")
+
+    now_ts = time.time()
+    filtered = []
+    for g in giveaways:
+        if g.points < min_points:
+            continue
+        if max_points is not None and g.points > max_points:
+            continue
+        if timeframe is not None and (g.end_timestamp - now_ts) > timeframe:
+            continue
+        filtered.append(g)
+
+    if not filtered:
+        log.warning("No giveaways matched the filter criteria.")
+        return []
+
+    if isinstance(by, str):
+        by = [crit.strip() for crit in by.split(",")]
+
+    for crit in by:
+        if not hasattr(filtered[0], crit):
+            log.error(f"❌ Invalid sort criteria: {crit}")
+            raise AttributeError(f"Giveaway has no attribute '{crit}'")
+
+    sorted_giveaways = sorted(
+        filtered,
+        key=lambda g: tuple(getattr(g, crit) for crit in by),
+        reverse=reverse
+    )
+
+    return sorted_giveaways
 
 if __name__ == "__main__":
     all_giveaways = fetch_giveaways()
