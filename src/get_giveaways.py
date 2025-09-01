@@ -1,7 +1,6 @@
 from datetime import timedelta
 from time import time
 import os
-from arrow import get, now
 from bs4 import BeautifulSoup
 import json, requests, time, src.session_manager as sm
 from utils.logger import log
