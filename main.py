@@ -50,10 +50,10 @@ def main():
     # 2. Buscar giveaways
     giveaways = get_giveaways.fetch_giveaways()  # por ex., até 300 giveaways
     
-    print(get_giveaways.sort_giveaways(giveaways=giveaways, by=("points", "remaining_time"), max_points=current_points(), timeframe=None))
+    best_giveaways = get_giveaways.sort_giveaways(giveaways=giveaways, by=("points", "remaining_time"), max_points=current_points(), timeframe=None)
 
-    # # 4. Entrar nos giveaways
-    # join_giveaways.process_and_join_all(giveaways)
+    # 4. Entrar nos giveaways
+    join_giveaways.process_and_join_all(best_giveaways)
     
 def current_points() -> int:
     resp = requests.get(BASE_URL, cookies=sm.cookies)
