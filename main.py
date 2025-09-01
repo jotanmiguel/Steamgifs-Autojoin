@@ -1,7 +1,5 @@
 import os, src.session_manager as sm, argparse
 import re
-
-from arrow import get
 from threading import local
 import requests
 from src import save_cookies, get_giveaways, join_giveaways
