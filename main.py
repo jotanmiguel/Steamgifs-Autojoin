@@ -1,8 +1,9 @@
 import os, src.session_manager as sm, argparse
+import re
 from threading import local
 import requests
 from src import save_cookies, get_giveaways, join_giveaways
-from src.config import COOKIES_PATH
+from src.config import BASE_URL, COOKIES_PATH
 from utils.logger import setup_logger, log
 
 def main():
@@ -46,9 +47,25 @@ def main():
     
     # 2. Buscar giveaways
     giveaways = get_giveaways.fetch_giveaways()  # por ex., até 300 giveaways
+    
+    best_giveaways = get_giveaways.sort_giveaways(giveaways=giveaways, by=("points", "remaining_time"), max_points=current_points(), timeframe=None)
 
-    # # 4. Entrar nos giveaways
-    join_giveaways.process_and_join_all(giveaways)
+    # 4. Entrar nos giveaways
+    join_giveaways.process_and_join_all(best_giveaways)
+    
+def current_points() -> int:
+    resp = requests.get(BASE_URL, cookies=sm.cookies)
+    if resp.status_code != 200:
+        log.error(f"Failed to fetch current points: {resp.status_code} - {resp.text}")
+        return 0
+    log.debug(f"Response from {BASE_URL}: {resp.status_code} - {resp.text[:100]}...")
+    log.debug("Fetching current points...")
+    match = re.search(r'<span class="nav__points">(\d+)</span>', resp.text)
+    if match:
+        pontos = int(match.group(1))
+        return pontos
+    log.warning("Could not find points in the response.")
+    return 0
 
 if __name__ == "__main__":
     main()

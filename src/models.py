@@ -1,7 +1,12 @@
 from dataclasses import dataclass, asdict
 from datetime import timedelta
+import re
 import time
 from typing import Any, List, Optional, Dict
+from utils.logger import log
+import requests
+from src.config import BASE_URL
+import src.session_manager as sm
 
 @dataclass
 class Creator:
@@ -45,7 +50,10 @@ class Giveaway:
     whitelist: bool = False
     group: bool = False
     contributor_level: int = 0
-    joined: bool = False      
+    joined: bool = False
+    score: float = 0.0
+    remaining_time: int = 0
+    remaining_time_str: str = ""      
 
     def to_dict(self) -> Dict[str, any]:
         return asdict(self)
@@ -74,7 +82,10 @@ class Giveaway:
             entry_count=data.get("entry_count", 0),
             creator=creator,
             code=data.get("code", ""),
-            joined=data.get("joined", False)
+            joined=data.get("joined", False),
+            remaining_time=data.get("remaining_time", 0),
+            remaining_time_str=data.get("remaining_time_str", ""),     
+            score=data.get("score", 0)  
         )
 
     def update_joined_status(self):
@@ -96,14 +107,14 @@ class Giveaway:
             f"   🔗 Link: {self.link}\n"
             f"   🏷️ Points: {self.points} | Copies: {self.copies} | Entries: {self.entry_count} | Probability: {self.get_probability():.2f}\n"
             f"   👤 Creator: {self.creator.username if self.creator else 'Unknown'}\n"
-            f"   🕒 Ends in: {self.timedelta()}"
+            f"   🕒 Ends in: {self.remaining_time_str}"
         )
 
     def short(self) -> str:
         return f"🎁 {self.name} - {self.link}"
 
     def __repr__(self):
-        return f"<Giveaway {self.name} ({self.id})>"
+        return f"<Giveaway {self.name} ({self.id}) ({self.link})- Points: {self.points}, Remaining: {self.remaining_time_str}"
 
 @dataclass
 class Giveaways:
@@ -115,3 +126,16 @@ class Giveaways:
     def to_dict(self) -> List[Dict[str, Any]]:
         return [g.to_dict() for g in self.giveaways]
     
+@dataclass
+class Profile:
+    username: str
+    user_id: int
+    level: int
+    points: int
+    giveaways_count: int
+    wins_count: int
+    comments_count: int
+    created_timestamp: int
+
+    def to_dict(self) -> Dict[str, any]:
+        return asdict(self)
