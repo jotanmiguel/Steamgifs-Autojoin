@@ -46,7 +46,10 @@ def main():
     log.info("")
     
     # 2. Buscar giveaways
-    giveaways = get_giveaways.fetch_giveaways()  # por ex., até 300 giveaways
+    if args.max_pages:
+        giveaways = get_giveaways.fetch_giveaways(max_pages=args.max_pages)
+    else:
+        giveaways = get_giveaways.fetch_giveaways()
     
     best_giveaways = get_giveaways.sort_giveaways(giveaways=giveaways, by=("points", "remaining_time"), max_points=current_points(), timeframe=None)
 

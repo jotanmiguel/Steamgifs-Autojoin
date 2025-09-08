@@ -1,6 +1,7 @@
 from datetime import timedelta
 from time import time
 import os
+from unittest import result
 from bs4 import BeautifulSoup
 import json, requests, time, src.session_manager as sm
 from utils.logger import log
@@ -120,25 +121,32 @@ def fetch_giveaways(max_pages=5):
     Fetches giveaways from multiple pages and stores them in JSON.
 
     Args:
-        max_pages (int, optional): Number of pages to fetch. Defaults to 5.
+        max_pages (int, optional): Number of pages to fetch. Defaults to 5. For all pages fetch, -1 should be used.
 
     Returns:
         list[Giveaway]: List of Giveaway objects.
     """
     
+    if max_pages == -1:
+        log.info("Fetching all pages")
+    
     os.makedirs(os.path.dirname(GIVEAWAYS_FILE), exist_ok=True)
     
     page = 1
     total = []
-    while page <= max_pages:
+    results_len = 100
+    
+    while True:
         giveaways = fetch_giveaway_page(page, max_pages)
-        if not giveaways:
-            log.info(f"❗ No more giveaways found on page {page}. Stopping search.")
-            break
-        
         total.extend(giveaways)
+        results_len = len(giveaways)
         page += 1
         time.sleep(1)
+        
+        if max_pages != -1 and page > max_pages:
+            break
+        if max_pages == -1 and results_len < 100:
+            break
 
     log.info(f"✅ Total giveaways fetched: {len(total)}")
 
