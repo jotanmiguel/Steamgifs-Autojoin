@@ -1,3 +1,4 @@
+from ast import parse
 import os, src.session_manager as sm, argparse
 import re
 from threading import local
@@ -11,6 +12,7 @@ def main():
     parser.add_argument("--max-pages", type=int, default=5, help="Número máximo de páginas a buscar giveaways")
     parser.add_argument("--verbose", action="store_true", help="Ativar logs detalhados")
     parser.add_argument("--local", action="store_true", help="Usar cookies locais ao invés de Cloudflare")
+    parser.add_argument("--all-pages", action="store_true", help="Fetch all pages of giveaways (overrides --max-pages)")
     args = parser.parse_args()
 
     log_level = "DEBUG" if args.verbose else "INFO"
@@ -45,9 +47,10 @@ def main():
     
     log.info("")
     
+    max_pages = args.max_pages if not args.all_pages else -1
     # 2. Buscar giveaways
-    if args.max_pages:
-        giveaways = get_giveaways.fetch_giveaways(max_pages=args.max_pages)
+    if max_pages:
+        giveaways = get_giveaways.fetch_giveaways(max_pages=max_pages)
     else:
         giveaways = get_giveaways.fetch_giveaways()
     

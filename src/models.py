@@ -51,6 +51,7 @@ class Giveaway:
     group: bool = False
     contributor_level: int = 0
     joined: bool = False
+    owned: bool = False
     score: float = 0.0
     remaining_time: int = 0
     remaining_time_str: str = ""      
@@ -118,13 +119,34 @@ class Giveaway:
 
 @dataclass
 class Giveaways:
-    giveaways: List[Giveaway]
+    time_fetched: int
+    results_count: int
+    giveaways: Dict[str, Giveaway]
 
-    def __iter__(self):
-        return iter(self.giveaways)
+    @classmethod
+    def from_dict(cls, data: dict) -> "Giveaways":
+        giveaways = {}
+        for gid, g in data.get("giveaways", {}).items():
+            if isinstance(g, dict):  # já é dict vindo do JSON
+                giveaways[gid] = Giveaway.from_dict(g)
+            elif isinstance(g, Giveaway):  # já é objeto
+                giveaways[gid] = g
+            else:
+                raise TypeError(f"Unexpected type in giveaways: {type(g)}")
+        
+        return cls(
+            time_fetched=data.get("time_fetched", int(time.time())),
+            results_count=data.get("results_count", len(giveaways)),
+            giveaways=giveaways,
+        )
 
-    def to_dict(self) -> List[Dict[str, Any]]:
-        return [g.to_dict() for g in self.giveaways]
+    def to_dict(self) -> dict:
+        return {
+            "time_fetched": self.time_fetched,
+            "results_count": self.results_count,
+            "giveaways": {gid: g.to_dict() for gid, g in self.giveaways.items()},
+        }
+
     
 @dataclass
 class Profile:

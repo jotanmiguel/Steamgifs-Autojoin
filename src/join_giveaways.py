@@ -73,7 +73,8 @@ def join_giveaway(giveaway: Giveaway):
 
     if resp.status_code == 200 and "success" in resp.text:
         log.info(f"✅ Successfully entered giveaway {giveaway.short()}.")
-        giveaway.update_joined_status()
+        giveaway.joined = True
+        giveaway.entry_count += 1
         return True
     else:
         log.error(f"❌ Failed to enter giveaway {giveaway.short()}. Response: {resp.status_code} - {resp.text}")
