@@ -25,7 +25,7 @@ def main():
     
     log.info("")
     
-    # 1. Garantir cookies guardadas
+    # Cookies e sessão
     log.info("🔍 Checking for cookies...")
     if not os.path.exists(COOKIES_PATH) and args.local:
         log.warning(f"Cookies not found at {COOKIES_PATH}. Please log in to SteamGifts and save cookies first.")
