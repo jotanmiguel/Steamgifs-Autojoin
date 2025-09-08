@@ -1,0 +1,7 @@
+requests
+beautifulsoup4
+selenium
+colorama
+flask
+workers
+env
