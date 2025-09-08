@@ -12,6 +12,7 @@ on:
 
 jobs:
   build-and-run:
+    name: CI Build & Run
     runs-on: ubuntu-latest
     steps:
       # 1️⃣ Puxar o repositório
