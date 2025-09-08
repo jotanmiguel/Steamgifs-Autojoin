@@ -5,3 +5,4 @@ colorama>=0.4.6
 flask
 workers
 env
+requests
