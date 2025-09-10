@@ -1,0 +1,66 @@
+{
+    "time_fetched": 1757336577,
+    "results_count": 295,
+    "giveaways": {
+        "6671464": {
+            "id": 6671464,
+            "name": "Warpips",
+            "points": 17,
+            "copies": 1,
+            "app_id": 1291010,
+            "package_id": null,
+            "link": "https://www.steamgifts.com/giveaway/RKnYf/warpips",
+            "created_timestamp": 1756902641,
+            "start_timestamp": 1756902660,
+            "end_timestamp": 1757338200,
+            "comment_count": 13,
+            "entry_count": 1422,
+            "creator": {
+                "id": 414708,
+                "steam_id": "76561198046228882",
+                "username": "Greyscar"
+            },
+            "code": "RKnYf",
+            "region_restricted": false,
+            "invite_only": false,
+            "whitelist": false,
+            "group": false,
+            "contributor_level": 0,
+            "joined": true,
+            "owned": false,
+            "score": 0,
+            "remaining_time": 863,
+            "remaining_time_str": "0d 00h:14m:23s"
+        },
+        "6669920": {
+            "id": 6669920,
+            "name": "Climb Challenge - Find Items Cyberpunk",
+            "points": 50,
+            "copies": 2,
+            "app_id": 2703280,
+            "package_id": null,
+            "link": "https://www.steamgifts.com/giveaway/O7wiM/climb-challenge-find-items-cyberpunk",
+            "created_timestamp": 1756730870,
+            "start_timestamp": 1756730640,
+            "end_timestamp": 1757338980,
+            "comment_count": 14,
+            "entry_count": 2174,
+            "creator": {
+                "id": 2703403,
+                "steam_id": "76561198246395906",
+                "username": "1game2lee"
+            },
+            "code": "O7wiM",
+            "region_restricted": false,
+            "invite_only": false,
+            "whitelist": false,
+            "group": false,
+            "contributor_level": 0,
+            "joined": false,
+            "owned": false,
+            "score": 0,
+            "remaining_time": 1643,
+            "remaining_time_str": "0d 00h:27m:23s"
+        }
+    }
+}
