@@ -1,18 +1,21 @@
 from ast import parse
 import os, src.session_manager as sm, argparse
+import time
 import re
 from threading import local
 import requests
 from src import save_cookies, get_giveaways, join_giveaways
 from src.config import BASE_URL, COOKIES_PATH
 from utils.logger import setup_logger, log
+from utils.json_manager import jm
+
 
 def main():
     parser = argparse.ArgumentParser(description="SteamGifts Autojoin Bot")
     parser.add_argument("--max-pages", type=int, default=5, help="Número máximo de páginas a buscar giveaways")
     parser.add_argument("--verbose", action="store_true", help="Ativar logs detalhados")
     parser.add_argument("--local", action="store_true", help="Usar cookies locais ao invés de Cloudflare")
-    parser.add_argument("--all-pages", action="store_true", help="Fetch all pages of giveaways (overrides --max-pages)")
+    parser.add_argument("--all", action="store_true", help="Fetch all pages of giveaways (overrides --max-pages)")
     args = parser.parse_args()
 
     log_level = "DEBUG" if args.verbose else "INFO"
@@ -23,7 +26,7 @@ def main():
         
     log.info("🚀 SteamGifts Autojoin iniciado")
     
-    log.info(f"Max pages to fetch: {args.max_pages}")
+    log.info(f"Max pages to fetch: {args.max_pages if not args.all else 'all'}")
     
     log.info("")
     
@@ -47,17 +50,29 @@ def main():
     
     log.info("")
     
-    max_pages = args.max_pages if not args.all_pages else -1
+    time_start = time.time()
+    
+    max_pages = args.max_pages if not args.all else -1
     # 2. Buscar giveaways
     if max_pages:
         giveaways = get_giveaways.fetch_giveaways(max_pages=max_pages)
     else:
         giveaways = get_giveaways.fetch_giveaways()
     
-    best_giveaways = get_giveaways.sort_giveaways(giveaways=giveaways, by=("points", "remaining_time"), max_points=current_points(), timeframe=None)
-
+    best_giveaways = get_giveaways.sort_giveaways(giveaways_obj=giveaways, by=("points", "remaining_time"), max_points=current_points(), timeframe=None)
+    
+    # Remove expired giveaways
+    jm.cleanup_expired(time.time())
+    
     # 4. Entrar nos giveaways
     join_giveaways.process_and_join_all(best_giveaways)
+    
+    log.info("")
+
+    time_end = time.time()
+    time_elapsed = time_end - time_start
+    log.info(f"Script running duration: {time_elapsed:.2f}s")
+    log.info(f"Time per giveaway: {time_elapsed/len(best_giveaways)}")
     
 def current_points() -> int:
     resp = requests.get(BASE_URL, cookies=sm.cookies)

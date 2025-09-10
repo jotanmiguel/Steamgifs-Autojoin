@@ -1,11 +1,10 @@
-from flask import g
-import os, requests, time, re
+import requests, time, re
 import src.session_manager as sm
-from src.get_giveaways import fetch_giveaway, get_link_from_id, get_giveaway_main_information
+
 from src.config import BASE_URL
-from src.models import Giveaway, Giveaways
-from bs4 import BeautifulSoup
+from src.models import Giveaway
 from utils.logger import log
+from utils.json_manager import jm
 
 def get_current_points():
     """
@@ -29,40 +28,37 @@ def get_current_points():
     log.warning("Could not find points in the response.")
     return 0
 
-def already_entered(giveaway: Giveaway, cookies):
-    """_summary_
-
-    Args:
-        giveaway_id (_type_): _description_
-        cookies (_type_): _description_
-
-    Returns:
-        _type_: _description_
-    """
-    
+def is_joinable(giveaway: Giveaway, cookies) -> bool:
     log.debug(f"Checking if already entered giveaway {giveaway.short()}...")
-    resp = requests.get(giveaway.link, cookies=cookies)
-    resp.raise_for_status()
-
-    soup = BeautifulSoup(resp.text, "html.parser")
     
-    # Se o botão de remover existir e não tiver a classe "is-hidden", já participaste
-    remove_btn = soup.find("div", {"data-do": "entry_delete"})
-    if remove_btn and "is-hidden" not in remove_btn.get("class", []):
-        log.warning(f"Already entered giveaway {giveaway.short()}. Skipping.")
-        return True
-    return False
+    resp = requests.get(giveaway.link, cookies=cookies)
+    html = resp.text
 
-def join_giveaway(giveaway: Giveaway):
+    if giveaway.joined or giveaway.owned:
+        return False
+
+    if re.search(r'data-do="entry_delete"[^>]*class="(?!.*is-hidden).*"', html):
+        giveaway.update_joined_status(True)
+        jm.update_giveaway(giveaway)
+        return False
+
+    if 'sidebar__error is-disabled' in html:
+        giveaway.updated_owned_status(True)
+        jm.update_giveaway(giveaway)
+        return False
+
+    return True
+
+def join_giveaway(giveaway: Giveaway, cookies) -> bool:
     if not giveaway:
-        log.warning(f"Giveaway not found. Skipping.")
+        log.warning("Giveaway not found. Skipping.")
         return False
 
-    if giveaway.joined:
-        log.info(f"Giveaway {giveaway.short()} already joined. Skipping.")
-        return False
+    if not is_joinable(giveaway, cookies):
+        log.warning(f"Giveaway {giveaway.short()} already joined or owned. Skipping.")
+        return False  # já estava inscrito
 
-    payload = {
+    payload = {        
         "xsrf_token": sm.xsrf_token,
         "do": "entry_insert",
         "code": giveaway.code
@@ -70,39 +66,39 @@ def join_giveaway(giveaway: Giveaway):
 
     resp = requests.post(f"{BASE_URL}/ajax.php", data=payload, cookies=sm.cookies)
     log.debug(f"Payload sent: {payload}")
+    resp.raise_for_status()
+    log.debug(f"Response received: {resp.text}")
 
-    if resp.status_code == 200 and "success" in resp.text:
-        log.info(f"✅ Successfully entered giveaway {giveaway.short()}.")
-        giveaway.joined = True
-        giveaway.entry_count += 1
-        return True
-    else:
-        log.error(f"❌ Failed to enter giveaway {giveaway.short()}. Response: {resp.status_code} - {resp.text}")
-        return False
+    # atualizar estado
+    giveaway.update_joined_status(True)
+    jm.update_giveaway(giveaway)
+    log.info(f"✅ Joined giveaway {giveaway.short()}")
+    return True
 
 
-def process_and_join_all(giveaways: Giveaways):
+def process_and_join_all(giveaways: list[Giveaway]):
     """
     Enter all the giveaways in the list.
 
     Args:
         giveaways (Giveaways): List of giveaways retrieved from the API.
     """
-        
-    log.info(f"Processing {len(giveaways)} giveaways to join...")
+    
     total_joined = 0
+    current_points = get_current_points()
+    log.info(f"Processing {len(giveaways)} giveaways to join with {current_points}p...")
+    
     for g in giveaways:
-        current_points = get_current_points()
         match current_points:
             case 0:
                 log.warning("⚠️ No points available. Cannot join any giveaways.")
                 break
             case _ if current_points < g.points:
-                log.warning(f"⚠️ Not enough points to join giveaway {g.id}. Required: {g.points}, Available: {current_points}.")
+                log.warning(f"⚠️ Not enough points to join giveaway {g.short()}. Required: {g.points}, Available: {current_points}.")
                 continue
             case _:
-                if join_giveaway(g):
+                if join_giveaway(g, cookies=sm.cookies):
+                    current_points -= g.points
                     total_joined += 1
         
-        time.sleep(1)  # evitar spam
     log.info(f"🎯 Total giveaways joined: {total_joined}/{len(giveaways)}")

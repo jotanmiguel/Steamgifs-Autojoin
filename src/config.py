@@ -11,3 +11,5 @@ BASE_URL = "https://www.steamgifts.com"
 FIREFOX_PATH = r"C:\Program Files\Mozilla Firefox\firefox.exe"  # <-- ajustar se necessário
 GIVEAWAYS_FILE = os.path.join(BASE_DIR, "data", "giveaways.json")
 TESTE = "asdas"
+DATA_DIR = os.path.join(BASE_DIR, "data")
+DATA_FILE = os.path.join(DATA_DIR, "giveaways.json")

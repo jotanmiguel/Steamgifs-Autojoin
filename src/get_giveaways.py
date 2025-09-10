@@ -6,7 +6,9 @@ from bs4 import BeautifulSoup
 import json, requests, time, src.session_manager as sm
 from utils.logger import log
 from src.config import BASE_URL, GIVEAWAYS_FILE
-from src.models import Giveaway
+from src.models import Giveaway, Giveaways
+from utils.json_manager import jm
+
 
 PARAMS = {"format": "json"}
 
@@ -77,20 +79,9 @@ def fetch_giveaway_page(page=1, max_pages=5):
             
 
         end_timestamp = g.get("end_timestamp", 0)
-        remaining_seconds = int(end_timestamp - time.time())
+        g["remaining_time"] = int(end_timestamp - time.time())  # opcional, só se precisares guardar
 
-        if remaining_seconds > 0:
-            days = remaining_seconds // 86400
-            hours = (remaining_seconds % 86400) // 3600
-            minutes = (remaining_seconds % 3600) // 60
-            seconds = remaining_seconds % 60
-
-            log.info(f"Remaining time: {days}d {hours:02}h:{minutes:02}m:{seconds:02}s")
-            
-        g["remaining_time"] = remaining_seconds
-        g["remaining_time_str"] = f"{days}d {hours:02}h:{minutes:02}m:{seconds:02}s"
         
-            
     log.info(f"All giveaways from page {page} fetched successfully.")
     log.info("")
     return giveaways
@@ -116,7 +107,7 @@ def fetch_giveaway(giveaway_id: str):
     log.warning(f"❗ Giveaway with ID {giveaway_id} not found.")
     return None  # se não encontrar
 
-def fetch_giveaways(max_pages=5):
+def fetch_giveaways(max_pages=5) -> Giveaways:
     """
     Fetches giveaways from multiple pages and stores them in JSON.
 
@@ -141,7 +132,6 @@ def fetch_giveaways(max_pages=5):
         total.extend(giveaways)
         results_len = len(giveaways)
         page += 1
-        time.sleep(1)
         
         if max_pages != -1 and page > max_pages:
             break
@@ -150,41 +140,59 @@ def fetch_giveaways(max_pages=5):
 
     log.info(f"✅ Total giveaways fetched: {len(total)}")
 
-    # Converter JSON → Objetos Giveaway
+    # converter lista de dicts → objetos Giveaway
     giveaway_objects = [Giveaway.from_dict(g) for g in total]
 
-    # Guardar no ficheiro mas usando dicionários
-    with open(GIVEAWAYS_FILE, "w", encoding="utf-8") as f:
-        json.dump([g.to_dict() for g in giveaway_objects], f, ensure_ascii=False, indent=4)
-        log.info(f"💾 Saved giveaways to {GIVEAWAYS_FILE}")
+    # criar objeto Giveaways
+    giveaways_obj = Giveaways(
+        time_fetched=int(time.time()),
+        results_count=len(giveaway_objects),
+        giveaways={str(g.id): g for g in giveaway_objects}
+    )
 
-    return giveaway_objects
+    # guardar usando JsonManager
+    jm.write(giveaways_obj.to_dict())
+    log.info(f"💾 Saved giveaways to {GIVEAWAYS_FILE} via JsonManager")
+    return giveaways_obj
 
-def sort_giveaways(giveaways, by=("remaining_time", "points"), reverse=False, min_points=0, max_points=None, timeframe=3600):
+def sort_giveaways(
+    giveaways_obj: Giveaways,
+    by=("remaining_time", "points"),
+    reverse=False,
+    min_points=0,
+    max_points=None,
+    timeframe=3600
+) -> list[Giveaway]:
     """
-    Sorts giveaways based on specified criteria.
+    Sorts giveaways from a Giveaways object based on specified criteria.
 
     Args:
-        giveaways (Giveaways): List of Giveaway objects.
-        by (tuple, optional): Criteria of the sort. Defaults to ("remaining_time", "points").
-        reverse (bool, optional): If True, sort in descending order. Defaults to False.
-        timeframe (int, optional): Timeframe in seconds to filter giveaways ending within this period. Defaults to 3600. Recomended value = same as chron function. None to disable.
+        giveaways_obj (Giveaways): Giveaways object containing giveaways dict.
+        by (tuple): Criteria to sort by (attributes of Giveaway).
+        reverse (bool): If True, sort descending.
+        min_points (int): Minimum points filter.
+        max_points (int|None): Maximum points filter.
+        timeframe (int|None): Filter giveaways ending within this timeframe in seconds.
 
     Returns:
-        List: List of sorted Giveaway objects within the specified timeframe.
+        list[Giveaway]: Sorted list of Giveaway objects.
     """
-    
-    log.info(f"Sorting giveaways by {by}, reverse={reverse}, "
-             f"min_points={min_points}, max_points={max_points}, timeframe={timeframe}")
+    log.info(f"Sorting giveaways by {by}, reverse={reverse}, min_points={min_points}, max_points={max_points}, timeframe={timeframe}")
 
     now_ts = time.time()
+    giveaways_list = list(giveaways_obj.giveaways.values())
+
+    # aplicar filtros
     filtered = []
-    for g in giveaways:
+    for g in giveaways_list:
         if g.points < min_points:
             continue
         if max_points is not None and g.points > max_points:
             continue
         if timeframe is not None and (g.end_timestamp - now_ts) > timeframe:
+            continue
+        if g.joined or g.owned:
+            log.debug(f"get_giveaways.sort_giveaways(): Giveaway {g.short()} already joined or owned. Skipping.")
             continue
         filtered.append(g)
 
@@ -195,11 +203,13 @@ def sort_giveaways(giveaways, by=("remaining_time", "points"), reverse=False, mi
     if isinstance(by, str):
         by = [crit.strip() for crit in by.split(",")]
 
+    # validar atributos
     for crit in by:
         if not hasattr(filtered[0], crit):
             log.error(f"❌ Invalid sort criteria: {crit}")
             raise AttributeError(f"Giveaway has no attribute '{crit}'")
 
+    # ordenar
     sorted_giveaways = sorted(
         filtered,
         key=lambda g: tuple(getattr(g, crit) for crit in by),

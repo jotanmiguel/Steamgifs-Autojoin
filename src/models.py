@@ -1,13 +1,12 @@
 from dataclasses import dataclass, asdict
 from datetime import timedelta
-import re
 import time
 from typing import Any, List, Optional, Dict
+
+from numpy import save
 from utils.logger import log
-import requests
 from src.config import BASE_URL
 import src.session_manager as sm
-
 @dataclass
 class Creator:
     """
@@ -52,9 +51,7 @@ class Giveaway:
     contributor_level: int = 0
     joined: bool = False
     owned: bool = False
-    score: float = 0.0
-    remaining_time: int = 0
-    remaining_time_str: str = ""      
+    score: float = 0.0   
 
     def to_dict(self) -> Dict[str, any]:
         return asdict(self)
@@ -83,20 +80,43 @@ class Giveaway:
             entry_count=data.get("entry_count", 0),
             creator=creator,
             code=data.get("code", ""),
-            joined=data.get("joined", False),
-            remaining_time=data.get("remaining_time", 0),
-            remaining_time_str=data.get("remaining_time_str", ""),     
+            joined=data.get("joined", False),   
             score=data.get("score", 0)  
         )
 
-    def update_joined_status(self):
-        self.entry_count = self.entry_count + 1 if self.joined == False else self.entry_count - 1
-        self.joined = True if self.joined else False
+    def update_joined_status(self, joined: bool = True):
+        self.joined = joined
+        if joined:
+            log.debug(f"Joined is now {self.joined}")
+            self.entry_count += 1
+        else:
+            log.debug(f"Joined is now {self.joined}")
+            self.entry_count = max(0, self.entry_count - 1)
+        return self
     
+    def updated_owned_status(self, owned: bool = True):
+        self.owned = owned
+        return self
+
     def timedelta(self) -> timedelta:
         return timedelta(self.end_timestamp - time.time())
     
-    def get_probability(self):
+    @property
+    def remaining_time(self) -> int:
+        """Returns remaining seconds until giveaway ends (dynamic)."""
+        return max(0, int(self.end_timestamp - time.time()))
+
+    @property
+    def remaining_time_str(self) -> str:
+        """Returns a human-readable remaining time string."""
+        remaining_seconds = self.remaining_time
+        days = remaining_seconds // 86400
+        hours = (remaining_seconds % 86400) // 3600
+        minutes = (remaining_seconds % 3600) // 60
+        seconds = remaining_seconds % 60
+        return f"{days}d {hours:02}h:{minutes:02}m:{seconds:02}s"
+    
+    def get_probabilierty(self):
         if self.joined:
             return 1/(self.entry_count/self.copies)
         else:
@@ -112,7 +132,7 @@ class Giveaway:
         )
 
     def short(self) -> str:
-        return f"🎁 {self.name} - {self.link}"
+        return f"🎁 {self.name} - {self.link} -> {self.points}p"
 
     def __repr__(self):
         return f"<Giveaway {self.name} ({self.id}) ({self.link})- Points: {self.points}, Remaining: {self.remaining_time_str}"
@@ -126,19 +146,28 @@ class Giveaways:
     @classmethod
     def from_dict(cls, data: dict) -> "Giveaways":
         giveaways = {}
-        for gid, g in data.get("giveaways", {}).items():
-            if isinstance(g, dict):  # já é dict vindo do JSON
-                giveaways[gid] = Giveaway.from_dict(g)
-            elif isinstance(g, Giveaway):  # já é objeto
-                giveaways[gid] = g
-            else:
-                raise TypeError(f"Unexpected type in giveaways: {type(g)}")
+
+
+        raw_giveaways = data.get("giveaways", {})
         
+        if isinstance(raw_giveaways, dict):
+            for gid, g in raw_giveaways.items():
+                if isinstance(g, dict):
+                    giveaways[gid] = Giveaway.from_dict(g)
+                elif isinstance(g, Giveaway):
+                    giveaways[gid] = g
+                else:
+                    raise TypeError(f"Unexpected type in giveaways: {type(g)}")
+
+        else:
+            raise TypeError(f"Unexpected giveaways container: {type(raw_giveaways)}")
+
         return cls(
             time_fetched=data.get("time_fetched", int(time.time())),
             results_count=data.get("results_count", len(giveaways)),
             giveaways=giveaways,
         )
+
 
     def to_dict(self) -> dict:
         return {
