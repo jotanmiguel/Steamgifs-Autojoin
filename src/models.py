@@ -1,12 +1,9 @@
 from dataclasses import dataclass, asdict
 from datetime import timedelta
 import time
-from typing import Any, List, Optional, Dict
-
-from numpy import save
+from typing import Any, Optional, Dict
 from utils.logger import log
 from src.config import BASE_URL
-import src.session_manager as sm
 @dataclass
 class Creator:
     """
