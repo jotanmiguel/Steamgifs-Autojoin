@@ -13,15 +13,16 @@ class JsonManager():
     file: str
     
     def __post_init__(self):
-        """
-        
-        """
         path = Path(self.file)
         if path.exists():
             self.giveaways_obj = self._read()
         else:
-            self.giveaways_obj = Giveaways(giveaways={})
-            self.write()  # cria o ficheiro inicial
+            self.giveaways_obj = Giveaways(
+                giveaways={},
+                time_fetched=0,
+                results_count=0
+            )
+            self.write(self.giveaways_obj)
     
     def _read(self) -> Giveaways:
         with open(self.file, "r", encoding="utf-8") as f:
