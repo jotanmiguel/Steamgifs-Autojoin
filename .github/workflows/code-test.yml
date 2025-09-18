@@ -35,4 +35,4 @@ jobs:
           # Se tiveres cookies em GitHub Secrets, podes definir aqui
           COOKIES: ${{ secrets.COOKIES }}
         run: |
-          python main.py --all --verbose
+          python main.py --all
