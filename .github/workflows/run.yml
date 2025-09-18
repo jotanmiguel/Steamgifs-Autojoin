@@ -22,4 +22,4 @@ jobs:
       - name: Run bot
         env:
           COOKIES: ${{ secrets.COOKIES }}
-        run: python main.py --all --verbose
+        run: python main.py --all
