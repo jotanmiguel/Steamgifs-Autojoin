@@ -44,7 +44,7 @@ jobs:
               print("🍪 Number of cookies:", len(cookies))
               print("🍪 Cookie names:")
               for c in cookies:
-                  print(" -", c.get("name"))
+                  print(" -", c)
           EOF
 
       # 6️⃣ Executar o bot
