@@ -19,24 +19,6 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Debug cookies (safe)
-        env:
-          COOKIES: ${{ secrets.COOKIES }}
-        run: |
-          python - << 'EOF'
-          import os, json
-          raw = os.environ.get("COOKIES")
-          if not raw:
-              print("❌ COOKIES secret not set")
-          else:
-              cookies = json.loads(raw)
-              print("✅ COOKIES secret loaded")
-              print("🍪 Number of cookies:", len(cookies))
-              print("🍪 Cookie names:")
-              for c in cookies:
-                  print(" -", c.get("name"))
-          EOF
-
       - name: Run bot
         env:
           COOKIES: ${{ secrets.COOKIES }}
