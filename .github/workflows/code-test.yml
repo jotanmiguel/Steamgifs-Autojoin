@@ -30,9 +30,9 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
       # 6️⃣ Executar o bot
-      - name: Run SteamGifts Autojoin Bot
-        env:
-          # Se tiveres cookies em GitHub Secrets, podes definir aqui
-          COOKIES: ${{ secrets.COOKIES }}
-        run: |
-          python main.py --all
+      #- name: Run SteamGifts Autojoin Bot
+      #  env:
+      #    # Se tiveres cookies em GitHub Secrets, podes definir aqui
+      #    COOKIES: ${{ secrets.COOKIES }}
+      #  run: |
+      #    python main.py --all
