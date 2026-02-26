@@ -28,6 +28,34 @@ jobs:
       - name: Install dependencies
         run: |
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          
+      - name: Debug SteamGifts 403 (safe)
+        env:
+          COOKIES: ${{ secrets.COOKIES }}
+        run: |
+          python - << 'EOF'
+          import os, json, requests
+          raw = json.loads(os.environ["COOKIES"])
+          cookies = {}
+          for c in raw:
+            if isinstance(c, dict) and "name" in c and "value" in c:
+              cookies[c["name"]] = c["value"]
+      
+          s = requests.Session()
+          s.headers.update({
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            "Accept-Language": "en-US,en;q=0.5",
+            "Referer": "https://www.steamgifts.com/",
+          })
+      
+          r = s.get("https://www.steamgifts.com/", cookies=cookies, timeout=20)
+          print("status:", r.status_code)
+          print("server:", r.headers.get("server"))
+          print("cf-ray:", r.headers.get("cf-ray"))
+          print("content-type:", r.headers.get("content-type"))
+          print("body preview:", r.text[:180].replace("\n"," "))
+          EOF
 
       # 6️⃣ Executar o bot
       - name: Run SteamGifts Autojoin Bot
