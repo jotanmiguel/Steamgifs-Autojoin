@@ -16,5 +16,4 @@ COPY . /app
 RUN mkdir -p /app/cookies /app/data
 
 # Executa o teu script principal (mantém CLI)
-ENTRYPOINT ["python", "main.py"]
-CMD ["--all", "--verbose"]
+CMD ["python", "main.py", "--all"]
