@@ -54,3 +54,9 @@ jobs:
           platforms: linux/amd64,linux/arm64
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Build image
+        run: docker build -t steamgifts-test -f Dockerfile .
+      
+      - name: Run container (smoke test)
+        run: docker run --rm steamgifts-test --max-pages 1 --verbose
