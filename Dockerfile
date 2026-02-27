@@ -15,5 +15,5 @@ COPY . /app
 # Garante pastas esperadas (sem alterar estrutura)
 RUN mkdir -p /app/cookies /app/data
 
-# Executa o teu script principal (mantém CLI)
-CMD ["python", "main.py", "--all"]
+ENTRYPOINT ["python", "main.py"]
+CMD ["--max-pages", "5"]
