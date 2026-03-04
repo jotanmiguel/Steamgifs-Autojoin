@@ -1,8 +1,8 @@
 name: Steamgifts Autojoin
 
 on:
-  schedule:
-    - cron: "0 * * * *" # a cada hora
+  # schedule:
+    # - cron: "0 * * * *" # a cada hora
   workflow_dispatch:
 
 jobs:
