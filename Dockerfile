@@ -20,6 +20,12 @@ COPY . /app
 # Garante pastas esperadas (sem alterar estrutura)
 RUN mkdir -p /app/data
 
+# Copiar o script
+COPY wait-for-fsr.sh /app/wait-for-fsr.sh
+
+# Dar permissão de execução
+RUN chmod +x /app/wait-for-fsr.sh
+
 # Run as non-root user for security
 RUN useradd -m -s /bin/sh botuser && chown -R botuser /app
 USER botuser
