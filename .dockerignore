@@ -1,0 +1,47 @@
+# Git
+.git/
+.gitignore
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Local environments
+.env
+.env.*
+venv/
+
+# Local cookies and data (passed via COOKIES env var in Docker)
+cookies/
+data/giveaways.json
+
+# Windows-only binaries not needed in the Linux container
+bin/
+
+# Cloudflare Workers specific files
+worker.py
+wrangler.toml
+cf-requirements.txt
+functions/
+
+# Dev/editor files
+.vscode/
+.idea/
+*.iml
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Pytest / coverage
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+*.egg

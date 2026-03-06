@@ -3,6 +3,11 @@ FROM python:3.12-slim
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
+# COOKIES: JSON string of SteamGifts cookies, e.g.:
+#   docker run -e COOKIES='{"PHPSESSID":"...","steamLoginSecure":"..."}' ...
+# Can also be supplied as a Docker secret or GitHub Actions secret.
+ENV COOKIES=""
+
 WORKDIR /app
 
 # Dependências primeiro (melhor cache)
@@ -13,7 +18,11 @@ RUN pip install --no-cache-dir -r /app/requirements.txt
 COPY . /app
 
 # Garante pastas esperadas (sem alterar estrutura)
-RUN mkdir -p /app/cookies /app/data
+RUN mkdir -p /app/data
+
+# Run as non-root user for security
+RUN useradd -m -s /bin/sh botuser && chown -R botuser /app
+USER botuser
 
 ENTRYPOINT ["python", "main.py"]
 CMD ["--max-pages", "5"]
