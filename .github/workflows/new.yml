@@ -2,7 +2,7 @@ name: SteamGifts Bot
 
 on:
   workflow_run:
-    workflows: ["Build and Push Docker Image"]  # nome do workflow que faz o push
+    workflows: ["Build & Push Docker image (GHCR)"]  # nome do workflow que faz o push
     types:
       - completed  # só dispara quando o outro terminar
 
