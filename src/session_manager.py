@@ -1,32 +1,56 @@
-# session_manager.py
-import requests, json, os
-from src.config import COOKIES_PATH, BASE_URL
+import requests
+from src.config import BASE_URL
 from utils.logger import log
+
+FLARESOLVERR_URL = "http://localhost:8191/v1"
 
 cookies = None
 xsrf_token = None
+session = None
 
-def init_session(local=False):
-    log.info("Initializing session...")
-    global cookies, xsrf_token
-    cookies = get_cookies(local=local)
-    xsrf_token = get_xsrf_token(cookies)
-    log.info("Session initialized with cookies and XSRF token.")
 
-def get_cookies(local=False, path_json=COOKIES_PATH):
-    if local:
-        with open(path_json, "r", encoding="utf-8") as f:
-            return json.load(f)
+def init_session():
+    global cookies, xsrf_token, session
 
-    # ler do GitHub Actions / env
-    cookies_env = os.environ.get("COOKIES")
-    if cookies_env:
-        return json.loads(cookies_env)
+    log.info("Initializing session with FlareSolverr...")
 
-    raise RuntimeError("Cookies not found. Use local=True or set COOKIES in environment.")
+    session = get_cloudflare_session()
 
-def get_xsrf_token(cookies):
-    resp = requests.get(BASE_URL, cookies=cookies)
+    cookies = session.cookies.get_dict()
+
+    xsrf_token = get_xsrf_token(session)
+
+    log.info("Session initialized.")
+
+
+def get_cloudflare_session():
+    resp = requests.post(
+        FLARESOLVERR_URL,
+        json={
+            "cmd": "request.get",
+            "url": BASE_URL,
+            "maxTimeout": 60000
+        },
+    )
+
     resp.raise_for_status()
-    log.info("Fetched XSRF token from the main page.")
+
+    data = resp.json()
+
+    s = requests.Session()
+
+    for cookie in data["solution"]["cookies"]:
+        s.cookies.set(cookie["name"], cookie["value"], domain=cookie["domain"])
+
+    s.headers["User-Agent"] = data["solution"]["userAgent"]
+
+    return s
+
+
+def get_xsrf_token(session):
+    resp = session.get(BASE_URL)
+    resp.raise_for_status()
+
+    log.info("Fetched XSRF token from main page.")
+
     return resp.text.split('name="xsrf_token" value="')[1].split('"')[0]
