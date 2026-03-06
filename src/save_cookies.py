@@ -1,14 +1,21 @@
 import os
 import pickle
-from selenium import webdriver
-from selenium.webdriver.firefox.service import Service
-from selenium.webdriver.firefox.options import Options
 from src.config import COOKIES_DIR, COOKIES_FILE, FIREFOX_PATH, GECKODRIVER_PATH, BASE_URL
 from utils.logger import log
 import json
 
 def save_cookies_local():
     """Abre browser para login manual e salva cookies localmente (pickle + JSON)."""
+    try:
+        from selenium import webdriver
+        from selenium.webdriver.firefox.service import Service
+        from selenium.webdriver.firefox.options import Options
+    except ImportError:
+        raise RuntimeError(
+            "selenium is required for --local cookie saving. "
+            "Install it with: pip install selenium"
+        )
+
     os.makedirs(COOKIES_DIR, exist_ok=True)
 
     options = Options()
