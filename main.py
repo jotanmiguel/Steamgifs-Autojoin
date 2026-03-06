@@ -8,8 +8,11 @@ from src import save_cookies, get_giveaways, join_giveaways
 from src.config import BASE_URL, COOKIES_PATH
 from utils.logger import setup_logger, log
 from utils.json_manager import jm
-from src.session_manager import session
+from src.session_manager import session, init_session, fsr_request
 
+
+# Teste: fazer request para SteamGifts via FlareSolverr
+html = fsr_request("https://www.steamgifts.com")
 
 def main():
     parser = argparse.ArgumentParser(description="SteamGifts Autojoin Bot")
@@ -39,9 +42,9 @@ def main():
 
     try:
         if args.local:
-            sm.init_session(local=True)
+            init_session()
         else:
-            sm.init_session(local=False)
+            init_session(local=False)
     except requests.exceptions.HTTPError as e:
         if e.response.status_code == 429:
             log.error("⚠️ Too many requests. Please wait a bit before running again.")
@@ -50,6 +53,8 @@ def main():
             raise
     
     log.info("")
+    
+    fsr_request("https://www.steamgifts.com")
     
     time_start = time.time()
     
