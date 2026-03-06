@@ -16,3 +16,4 @@ services:
     restart: unless-stopped
     depends_on:
       - flaresolverr
+    entrypoint: ["/app/wait-for-fsr.sh", "python", "main.py"]

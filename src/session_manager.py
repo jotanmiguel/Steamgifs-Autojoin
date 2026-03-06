@@ -2,7 +2,7 @@
 import requests, json, os
 from src.config import COOKIES_PATH, BASE_URL
 from utils.logger import log
-
+import time, requests
 FLARESOLVERR_URL = os.environ.get("FLARESOLVERR_URL", "http://flaresolverr:8191/v1")
 
 session = requests.Session()
@@ -10,15 +10,21 @@ cookies = None
 xsrf_token = None
 
 # Função para chamar FlareSolverr
-def fsr_request(url):
-    payload = {
-        "cmd": "request.get",
-        "url": url,
-        "maxTimeout": 60000
-    }
-    resp = requests.post(FLARESOLVERR_URL, json=payload)
-    resp.raise_for_status()
-    return resp.json()["solution"]["response"]
+
+
+def fsr_request(url, retries=5, delay=2):
+    for i in range(retries):
+        try:
+            payload = {"cmd": "request.get", "url": url, "maxTimeout": 60000}
+            resp = requests.post(FLARESOLVERR_URL, json=payload)
+            resp.raise_for_status()
+            return resp.json()["solution"]["response"]
+        except requests.ConnectionError:
+            if i < retries - 1:
+                log.warning(f"FlareSolverr not ready, retrying in {delay}s...")
+                time.sleep(delay)
+            else:
+                raise
 
 def init_session(local=False):
     log.info("Initializing session via FlareSolverr...")
