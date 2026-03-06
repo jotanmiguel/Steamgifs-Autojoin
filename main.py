@@ -8,6 +8,7 @@ from src import save_cookies, get_giveaways, join_giveaways
 from src.config import BASE_URL, COOKIES_PATH
 from utils.logger import setup_logger, log
 from utils.json_manager import jm
+from src.session_manager import session
 
 
 def main():
@@ -75,7 +76,7 @@ def main():
     log.info(f"Time per giveaway: {time_elapsed/len(best_giveaways)}")
     
 def current_points() -> int:
-    resp = requests.get(BASE_URL, cookies=sm.cookies)
+    resp = session.get(url)
     if resp.status_code != 200:
         log.error(f"Failed to fetch current points: {resp.status_code} - {resp.text}")
         return 0
